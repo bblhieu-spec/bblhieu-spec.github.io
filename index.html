@@ -2,33 +2,47 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHOP ACC FF VIP</title>
+    <title>SHOP NGÔ NGỌC HÙNG - ĐẾ VƯƠNG</title>
     <style>
-        body { font-family: sans-serif; background: #0f0f0f; color: white; text-align: center; margin: 0; }
-        .header { background: #d32f2f; padding: 20px; }
-        .acc-card { background: #222; margin: 20px auto; padding: 15px; border-radius: 10px; width: 80%; border: 1px solid #444; }
-        .btn-buy { background: #ff9800; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; text-align: center; }
+        .decor { font-size: 24px; margin-bottom: 10px; color: #ffd700; }
+        .box { border: 3px solid #ffd700; padding: 20px; margin: 15px 0; border-radius: 20px; background: linear-gradient(145deg, #1a0000, #330000); box-shadow: 0 0 15px #d32f2f; }
+        .btn { background: #d32f2f; color: white; padding: 18px; border: 2px solid #ffd700; border-radius: 10px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-spin { background: #f39c12; }
+        .admin-box { border: 2px dashed #fff; padding: 20px; margin-top: 30px; border-radius: 15px; background: #222; display: none; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>SHOP ACC FF NGÔ NGỌC HÙNG</h1>
-        <p>Uy tín - Giá rẻ - Bảo hành 100%</p>
+
+    <div class="decor">🐉 🐲 鳳 麒麟 🐲 🐉</div>
+    <h1>SHOP NGÔ NGỌC HÙNG</h1>
+
+    <div class="box">
+        <h3>Số dư: <span id="balance">698999</span> VNĐ</h3>
+        <button class="btn" onclick="let s=parseInt(localStorage.getItem('myBal')||698999)+100000; localStorage.setItem('myBal',s); document.getElementById('balance').innerText=s.toLocaleString(); alert('Đã nạp 100k!');">NẠP 100K</button>
     </div>
 
-    <div class="acc-card">
-        <h3>Acc Rank Huyền Thoại</h3>
-        <p>Skin AK Rồng Xanh, Full nhân vật</p>
-        <p>Giá: 250.000đ</p>
-        <a href="https://zalo.me/sodienthoai-cua-ban" class="btn-buy">LIÊN HỆ MUA QUA ZALO</a>
+    <div class="box">
+        <h3>🎁 VÒNG QUAY MAY MẮN</h3>
+        <button class="btn btn-spin" onclick="let s=parseInt(localStorage.getItem('myBal')||698999); if(s<10000) alert('Thiếu tiền!'); else { s-=10000; let w=Math.random()<0.9?1000:50000; s+=w; localStorage.setItem('myBal',s); document.getElementById('balance').innerText=s.toLocaleString(); alert('Chúc mừng, bạn trúng '+w+' VNĐ'); }">QUAY NGAY (10k)</button>
     </div>
 
-    <div class="acc-card">
-        <h3>Acc Full Skin</h3>
-        <p>Skin súng hiếm, trang phục cực đẹp</p>
-        <p>Giá: 500.000đ</p>
-        <a href="https://zalo.me/sodienthoai-cua-ban" class="btn-buy">LIÊN HỆ MUA QUA ZALO</a>
+    <div class="box">
+        <h3>ACC ID 01 - Giá: 400.000 VNĐ</h3>
+        <button class="btn" onclick="let s=parseInt(localStorage.getItem('myBal')||698999); if(s>=400000){ s-=400000; localStorage.setItem('myBal',s); document.getElementById('balance').innerText=s.toLocaleString(); alert('MUA THÀNH CÔNG!\nTK: dugug\nMK: 667tfy'); } else alert('Thiếu tiền!');">MUA NGAY</button>
     </div>
+
+    <button class="btn" style="background:#000; border-color:#fff;" onclick="let k=prompt('Nhập Key Quản Trị:'); if(k=='123456') document.getElementById('adminPanel').style.display='block'; else alert('Sai Key!');">🛠 QUẢN TRỊ VIÊN</button>
+
+    <div id="adminPanel" class="admin-box">
+        <h3>🛠 BẢNG ĐIỀU KHIỂN (ADMIN)</h3>
+        <button class="btn" style="background:#555;" onclick="let n=prompt('Nhập số dư mới:', document.getElementById('balance').innerText.replace(/,/g,'')); if(n){localStorage.setItem('myBal',n); document.getElementById('balance').innerText=parseInt(n).toLocaleString();}">CHỈNH SỬA SỐ DƯ</button>
+        <button class="btn" style="background:#333;" onclick="if(confirm('Bạn có chắc muốn Reset shop?')) { localStorage.clear(); location.reload(); }">RESET SHOP</button>
+    </div>
+
+    <script>
+        // Load số dư ổn định nhất
+        document.getElementById('balance').innerText = (parseInt(localStorage.getItem('myBal')) || 698999).toLocaleString();
+    </script>
 </body>
 </html>
