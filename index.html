@@ -2,84 +2,67 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>SHOP NGÔ NGỌC HÙNG - PREMIUM</title>
+    <title>SHOP NGÔ NGỌC HÙNG</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
-        body { 
-            background: radial-gradient(circle, #1a1a2e, #0f0f1a); 
-            color: #00d4ff; 
-            font-family: 'Orbitron', sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-        }
-        h1 { text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff; letter-spacing: 2px; }
-        .box { 
-            border: 2px solid #00d4ff; 
-            padding: 25px; 
-            margin: 20px auto; 
-            border-radius: 20px; 
-            background: rgba(255, 255, 255, 0.05); 
-            max-width: 400px;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
+        
+        /* Hiệu ứng nhấp nháy Neon cho tiêu đề */
+        h1 { color: #fff; text-shadow: 0 0 5px #fff, 0 0 10px #ff00de; }
+        
+        .box { border: 2px solid #333; padding: 20px; margin: 15px auto; border-radius: 15px; background: #111; max-width: 400px; transition: 0.3s; }
+        .box:hover { border-color: #ff00de; }
+        
         .btn { 
-            background: linear-gradient(45deg, #00d4ff, #0055ff); 
-            color: white; 
-            padding: 15px; 
-            width: 100%; 
-            border: none; 
-            border-radius: 12px; 
-            margin-top: 15px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            text-transform: uppercase;
-            transition: 0.4s;
-            box-shadow: 0 4px 15px rgba(0, 120, 255, 0.4);
+            background: #222; color: #fff; padding: 15px; width: 100%; border: 1px solid #444; border-radius: 8px; 
+            margin-top: 10px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
-        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px #00d4ff; }
-        .qr-img { max-width: 220px; border: 4px solid #00d4ff; border-radius: 15px; margin: 15px 0; box-shadow: 0 0 20px #00d4ff; }
-        .admin-box { display: none; border: 2px dashed #00d4ff; padding: 20px; margin-top: 20px; color: #fff; }
+        /* Hiệu ứng chuyển màu nút bấm mượt mà */
+        .btn:hover { background: #ff00de; border-color: #fff; transform: scale(1.02); }
+        .btn:active { background: #fff; color: #000; }
+        
+        .qr-img { max-width: 200px; border: 2px solid #ff00de; margin: 10px 0; }
+        .admin-box { display: none; border: 1px dashed #ff00de; padding: 15px; margin-top: 20px; }
     </style>
 </head>
 <body>
     <h1>SHOP LIÊN QUÂN</h1>
     <div class="box">
-        <h3 style="color:#fff">SỐ DƯ: <span id="balance" style="color:#00d4ff">0</span> VNĐ</h3>
+        <h3>Số dư: <span id="balance" style="color:#ff00de">0</span> VNĐ</h3>
         <img src="https://i.postimg.cc/fSDJJ0wc/14604.jpg" class="qr-img">
-        <button class="btn" onclick="alert('Đang gửi thông báo nạp tiền...')">THÔNG BÁO ĐÃ NẠP</button>
+        <button class="btn" onclick="alert('Đã gửi thông báo!')">THÔNG BÁO ĐÃ NẠP</button>
         <button class="btn" onclick="nhapCode()">NHẬP MÃ QUÀ</button>
     </div>
 
     <div class="box">
-        <button class="btn" style="background:linear-gradient(45deg, #ff9d00, #ff5e00)" onclick="quay()">QUAY THƯỞNG</button>
-        <button class="btn" style="background:linear-gradient(45deg, #ff0055, #ff00aa)" onclick="muaAcc()">MUA ACC RANDOM</button>
+        <button class="btn" onclick="quay()">QUAY THƯỞNG</button>
+        <button class="btn" onclick="muaAcc()">MUA ACC RANDOM</button>
     </div>
 
-    <button style="background:transparent; border:none; color:#555; cursor:pointer" onclick="checkAdmin()">🛠 ADMIN</button>
+    <button style="background:none; border:none; color:#333; margin-top:20px;" onclick="checkAdmin()">⚙️</button>
     <div id="adminPanel" class="admin-box">
         <button class="btn" onclick="themAcc()">THÊM ACC</button>
         <button class="btn" onclick="taoMa()">TẠO MÃ</button>
-        <button class="btn" style="background:red" onclick="resetServer()">RESET SERVER</button>
+        <button class="btn" onclick="resetServer()">RESET</button>
     </div>
 
     <script>
-        // Các logic vẫn giữ nguyên như cũ để đảm bảo ổn định
         const BIN_ID = "6a104353ee5a733b12ffcdf5";
         const ADMIN_KEY = "hung0099";
-        let user = localStorage.getItem('username') || "Player_" + Math.floor(Math.random()*1000);
+        let user = localStorage.getItem('username') || "User" + Math.floor(Math.random()*1000);
         localStorage.setItem('username', user);
 
         async function api(m, d = null) {
             let o = { method: m, headers: {"Content-Type": "application/json"} };
             if(d) o.body = JSON.stringify(d);
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}${m=='PUT'?'':'/latest'}`, o);
-            return (await res.json()).record || {};
+            let r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}${m=='PUT'?'':'/latest'}`, o);
+            return (await r.json()).record || {};
         }
 
-        async function updateUI() {
+        async function init() {
             let d = await api('GET');
-            if(d.users && d.users[user]) document.getElementById('balance').innerText = d.users[user].balance.toLocaleString();
+            if(!d.users) d.users = {};
+            if(!d.users[user]) { d.users[user] = {balance: 0}; await api('PUT', d); }
+            document.getElementById('balance').innerText = d.users[user].balance.toLocaleString();
         }
 
         async function nhapCode() {
@@ -89,7 +72,7 @@
                 d.users[user].balance += d.codes[c].val;
                 d.codes[c].limit -= 1;
                 await api('PUT', d); alert("Nạp thành công!"); location.reload();
-            } else alert("Mã không hợp lệ!");
+            } else alert("Mã sai hoặc hết lượt!");
         }
 
         async function quay() {
@@ -99,7 +82,7 @@
             let win = Math.random() > 0.8 ? 50000 : 0;
             d.users[user].balance += win;
             await api('PUT', d);
-            alert(win > 0 ? "Trúng 50.000 VNĐ!" : "Chúc may mắn!");
+            alert(win > 0 ? "Trúng 50k!" : "Chúc may mắn!");
             location.reload();
         }
 
@@ -113,9 +96,16 @@
             await api('PUT', d); alert("Acc: " + acc); location.reload();
         }
 
-        function checkAdmin() {
-            if(prompt("Key:") == ADMIN_KEY) document.getElementById('adminPanel').style.display = 'block';
-        }
+        function checkAdmin() { if(prompt("Key:") == ADMIN_KEY) document.getElementById('adminPanel').style.display = 'block'; }
+        async function themAcc() { let a = prompt("Acc (user:pass):"); if(a) { let d = await api('GET'); if(!d.accounts) d.accounts={}; d.accounts["a"+Date.now()] = a; await api('PUT', d); location.reload(); } }
+        async function taoMa() { let c = prompt("Mã:"), v = prompt("Tiền:"), l = prompt("Lượt:"); if(c&&v&&l) { let d = await api('GET'); if(!d.codes) d.codes={}; d.codes[c] = {limit: parseInt(l), val: parseInt(v)}; await api('PUT', d); location.reload(); } }
+        async function resetServer() { if(confirm("RESET?")) { await api('PUT', {accounts:{}, codes:{}, users:{}}); location.reload(); } }
+
+        init();
+    </script>
+</body>
+</html>
+  }
         
         // ... (các hàm themAcc, taoMa, resetServer giữ nguyên như code trước) ...
         async function themAcc() { let a = prompt("User:Pass"); if(a) { let d = await api('GET'); if(!d.accounts) d.accounts={}; d.accounts["a"+Date.now()] = a; await api('PUT', d); location.reload(); } }
