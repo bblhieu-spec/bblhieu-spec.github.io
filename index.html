@@ -1,79 +1,81 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>SHOP</title>
-<style>
-body{background:#000;color:#fff;text-align:center;font-family:sans-serif;padding:20px}
-.box{border:2px solid #333;padding:20px;margin:10px auto;border-radius:15px;background:#111;max-width:400px}
-.btn{background:#222;color:#fff;padding:15px;width:100%;border:1px solid #444;border-radius:8px;margin-top:10px;font-weight:bold;cursor:pointer}
-.admin{display:none;border:2px dashed #f00;padding:15px;margin-top:20px}
-</style>
+    <meta charset="UTF-8">
+    <title>SHOP</title>
+    <style>
+        /* CSS cực kỳ đơn giản để không làm lag máy */
+        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; padding: 20px; }
+        .btn { display: block; background: #222; color: #fff; padding: 20px; width: 100%; border: 1px solid #444; margin: 10px 0; font-weight: bold; cursor: pointer; }
+        .btn:active { background: #555; }
+    </style>
 </head>
 <body>
-<h1>SHOP LIÊN QUÂN</h1>
-<div class="box">
-<h3>Số dư: <span id="balance">0</span> VNĐ</h3>
-<button class="btn" onclick="nhapCode()">NHẬP MÃ</button>
-<button class="btn" onclick="quay()">QUAY THƯỞNG</button>
-<button class="btn" onclick="muaAcc()">MUA ACC</button>
-</div>
-<button style="background:none;border:none;color:#333" onclick="checkAdmin()">⚙️</button>
-<div id="admin" class="admin">
-<button class="btn" onclick="themAcc()">THÊM ACC</button>
-<button class="btn" onclick="taoMa()">TẠO MÃ</button>
-<button class="btn" style="color:red" onclick="resetServer()">RESET</button>
-</div>
+    <h1>SHOP LIÊN QUÂN</h1>
+    <h2 id="balance">Số dư: 0 VNĐ</h2>
+    
+    <button class="btn" onclick="nhapCode()">NHẬP MÃ QUÀ</button>
+    <button class="btn" onclick="quay()">QUAY THƯỞNG</button>
+    <button class="btn" onclick="muaAcc()">MUA ACC RANDOM</button>
 
-<script>
-const BIN = "6a104353ee5a733b12ffcdf5";
-const KEY = "hung0099";
-let user = localStorage.getItem('u') || "User"+Math.floor(Math.random()*1000);
-localStorage.setItem('u', user);
+    <script>
+        const BIN = "6a104353ee5a733b12ffcdf5";
+        const U = localStorage.getItem('u') || "User"+Math.floor(Math.random()*1000);
+        localStorage.setItem('u', U);
 
-async function api(m, d=null) {
-    let o = {method: m, headers: {"Content-Type": "application/json"}};
-    if(d) o.body = JSON.stringify(d);
-    let r = await fetch("https://api.jsonbin.io/v3/b/"+BIN+(m=='PUT'?"":"/latest"), o);
-    return (await r.json()).record || {};
-}
+        async function get() {
+            let r = await fetch("https://api.jsonbin.io/v3/b/"+BIN+"/latest");
+            return (await r.json()).record;
+        }
 
-async function init() {
-    let d = await api("GET");
-    if(!d.users) d.users={};
-    if(!d.users[user]) {d.users[user]={balance:0}; await api("PUT", d);}
-    document.getElementById("balance").innerText = (d.users[user].balance||0).toLocaleString();
-}
+        async function put(d) {
+            await fetch("https://api.jsonbin.io/v3/b/"+BIN, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(d)
+            });
+            location.reload();
+        }
 
-async function nhapCode() {
-    let c = prompt("Mã:"); if(!c) return;
-    let d = await api("GET");
-    if(d.codes && d.codes[c] && d.codes[c].limit>0) {
-        d.users[user].balance += d.codes[c].val;
-        d.codes[c].limit -= 1;
-        await api("PUT", d); location.reload();
-    } else alert("Mã sai!");
-}
+        // Khởi tạo
+        (async()=>{
+            let d = await get();
+            if(!d.users) d.users={};
+            if(!d.users[U]) { d.users[U]={balance:0}; await put(d); }
+            document.getElementById("balance").innerText = "Số dư: " + (d.users[U].balance||0) + " VNĐ";
+        })();
 
-async function quay() {
-    let d = await api("GET");
-    if(d.users[user].balance < 10000) return alert("Thiếu tiền!");
-    d.users[user].balance -= 10000;
-    d.users[user].balance += (Math.random()>0.8?50000:0);
-    await api("PUT", d); location.reload();
-}
+        async function nhapCode() {
+            let c = prompt("Mã:"); if(!c) return;
+            let d = await get();
+            if(d.codes[c] && d.codes[c].limit > 0) {
+                d.users[U].balance += d.codes[c].val;
+                d.codes[c].limit -= 1;
+                await put(d);
+            } else alert("Mã sai!");
+        }
 
-async function muaAcc() {
-    let d = await api("GET");
-    let k = Object.keys(d.accounts || {});
-    if(k.length==0) return alert("Hết!");
-    let a = d.accounts[k[0]];
-    delete d.accounts[k[0]];
-    d.users[user].balance -= 400000;
-    await api("PUT", d); alert("Acc: "+a); location.reload();
-}
+        async function quay() {
+            let d = await get();
+            if(d.users[U].balance < 10000) return alert("Thiếu tiền!");
+            d.users[U].balance -= 10000;
+            d.users[U].balance += (Math.random()>0.8?50000:0);
+            await put(d);
+        }
 
-function checkAdmin() {if(prompt("Key:")==KEY) document.getElementById("admin").style.display="block";}
+        async function muaAcc() {
+            let d = await get();
+            let k = Object.keys(d.accounts || {});
+            if(k.length==0) return alert("Hết acc!");
+            let a = d.accounts[k[0]];
+            delete d.accounts[k[0]];
+            d.users[U].balance -= 400000;
+            await put(d); alert("Acc: "+a);
+        }
+    </script>
+</body>
+</html>
+ checkAdmin() {if(prompt("Key:")==KEY) document.getElementById("admin").style.display="block";}
 async function themAcc() {let a=prompt("Acc:"); if(a) {let d=await api("GET"); if(!d.accounts) d.accounts={}; d.accounts["a"+Date.now()]=a; await api("PUT", d); location.reload();}}
 async function taoMa() {let c=prompt("Mã"),v=prompt("Tiền"),l=prompt("Lượt"); if(c&&v) {let d=await api("GET"); if(!d.codes) d.codes={}; d.codes[c]={limit:parseInt(l),val:parseInt(v)}; await api("PUT", d); location.reload();}}
 async function resetServer() {if(confirm("RESET?")) {await api("PUT", {accounts:{},codes:{},users:{}}); location.reload();}}
