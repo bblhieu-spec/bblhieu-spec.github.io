@@ -1,108 +1,85 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>SHOP NGÔ NGỌC HÙNG - ĐẾ VƯƠNG</title>
-    <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { border: 2px solid #333; padding: 20px; margin: 15px auto; border-radius: 20px; background: #111; max-width: 400px; }
-        .btn { background: #1a1a1a; color: #fff; padding: 15px; width: 100%; border: 1px solid #444; border-radius: 12px; margin-top: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:active { background: #ff00de; transform: scale(0.98); }
-        .balance-text { font-size: 22px; color: #ff00de; font-weight: bold; }
-        .admin-box { display: none; border: 2px dashed #ff00de; padding: 20px; margin: 20px auto; max-width: 400px; border-radius: 20px; background: #0a0a0a; }
-    </style>
+<meta charset="UTF-8">
+<title>SHOP</title>
+<style>
+body{background:#000;color:#fff;text-align:center;font-family:sans-serif;padding:20px}
+.box{border:2px solid #333;padding:20px;margin:10px auto;border-radius:15px;background:#111;max-width:400px}
+.btn{background:#222;color:#fff;padding:15px;width:100%;border:1px solid #444;border-radius:8px;margin-top:10px;font-weight:bold;cursor:pointer}
+.admin{display:none;border:2px dashed #f00;padding:15px;margin-top:20px}
+</style>
 </head>
 <body>
-    <h1>SHOP LIÊN QUÂN</h1>
-    <div class="box">
-        <div style="font-size: 16px;">Số dư: <span id="balance" class="balance-text">0</span> VNĐ</div>
-        <button class="btn" style="border-color:#3498db" onclick="nhapCode()">NHẬP MÃ QUÀ</button>
-    </div>
+<h1>SHOP LIÊN QUÂN</h1>
+<div class="box">
+<h3>Số dư: <span id="balance">0</span> VNĐ</h3>
+<button class="btn" onclick="nhapCode()">NHẬP MÃ</button>
+<button class="btn" onclick="quay()">QUAY THƯỞNG</button>
+<button class="btn" onclick="muaAcc()">MUA ACC</button>
+</div>
+<button style="background:none;border:none;color:#333" onclick="checkAdmin()">⚙️</button>
+<div id="admin" class="admin">
+<button class="btn" onclick="themAcc()">THÊM ACC</button>
+<button class="btn" onclick="taoMa()">TẠO MÃ</button>
+<button class="btn" style="color:red" onclick="resetServer()">RESET</button>
+</div>
 
-    <div class="box">
-        <button class="btn" onclick="quay()">QUAY THƯỞNG (10k)</button>
-        <button class="btn" onclick="muaAcc()">MUA ACC (400k)</button>
-    </div>
+<script>
+const BIN = "6a104353ee5a733b12ffcdf5";
+const KEY = "hung0099";
+let user = localStorage.getItem('u') || "User"+Math.floor(Math.random()*1000);
+localStorage.setItem('u', user);
 
-    <button style="background:none; border:none; color:#222; margin-top:20px;" onclick="checkAdmin()">⚙️</button>
-    <div id="adminPanel" class="admin-box">
-        <button class="btn" onclick="themAcc()">THÊM ACC</button>
-        <button class="btn" onclick="taoMa()">TẠO MÃ</button>
-        <button class="btn" style="color:red" onclick="resetServer()">RESET</button>
-    </div>
+async function api(m, d=null) {
+    let o = {method: m, headers: {"Content-Type": "application/json"}};
+    if(d) o.body = JSON.stringify(d);
+    let r = await fetch("https://api.jsonbin.io/v3/b/"+BIN+(m=='PUT'?"":"/latest"), o);
+    return (await r.json()).record || {};
+}
 
-    <script>
-        const BIN_ID = "6a104353ee5a733b12ffcdf5";
-        const ADMIN_KEY = "hung0099";
-        let user = localStorage.getItem('username') || "User_" + Math.floor(Math.random()*1000);
-        localStorage.setItem('username', user);
+async function init() {
+    let d = await api("GET");
+    if(!d.users) d.users={};
+    if(!d.users[user]) {d.users[user]={balance:0}; await api("PUT", d);}
+    document.getElementById("balance").innerText = (d.users[user].balance||0).toLocaleString();
+}
 
-        // API siêu gọn: Giảm thiểu dữ liệu truyền đi
-        async function api(m, d = null) {
-            let o = { method: m, headers: {"Content-Type": "application/json"} };
-            if(d) o.body = JSON.stringify(d);
-            let r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}${m=='PUT'?'':'/latest'}`, o);
-            return (await r.json()).record || {};
-        }
+async function nhapCode() {
+    let c = prompt("Mã:"); if(!c) return;
+    let d = await api("GET");
+    if(d.codes && d.codes[c] && d.codes[c].limit>0) {
+        d.users[user].balance += d.codes[c].val;
+        d.codes[c].limit -= 1;
+        await api("PUT", d); location.reload();
+    } else alert("Mã sai!");
+}
 
-        async function init() {
-            let d = await api('GET');
-            if(!d.users) d.users = {};
-            if(!d.users[user]) { d.users[user] = {balance: 0}; await api('PUT', d); }
-            document.getElementById('balance').innerText = d.users[user].balance.toLocaleString();
-        }
+async function quay() {
+    let d = await api("GET");
+    if(d.users[user].balance < 10000) return alert("Thiếu tiền!");
+    d.users[user].balance -= 10000;
+    d.users[user].balance += (Math.random()>0.8?50000:0);
+    await api("PUT", d); location.reload();
+}
 
-        // Tối ưu nhập mã: Chỉ tải 1 lần, kiểm tra nhanh
-        async function nhapCode() {
-            let c = prompt("Nhập mã:"); if(!c) return;
-            let d = await api('GET');
-            if(d.codes && d.codes[c] && d.codes[c].limit > 0) {
-                d.users[user].balance += d.codes[c].val;
-                d.codes[c].limit -= 1;
-                await api('PUT', d); 
-                alert("Nạp thành công!"); 
-                location.reload();
-            } else alert("Mã sai hoặc hết lượt!");
-        }
+async function muaAcc() {
+    let d = await api("GET");
+    let k = Object.keys(d.accounts || {});
+    if(k.length==0) return alert("Hết!");
+    let a = d.accounts[k[0]];
+    delete d.accounts[k[0]];
+    d.users[user].balance -= 400000;
+    await api("PUT", d); alert("Acc: "+a); location.reload();
+}
 
-        // Tối ưu tạo mã: Không cần tải lại toàn bộ khi chưa cần thiết
-        async function taoMa() {
-            let c = prompt("Mã:"), v = prompt("Tiền:"), l = prompt("Lượt:");
-            if(c && v && l) {
-                let d = await api('GET');
-                if(!d.codes) d.codes = {};
-                d.codes[c] = {limit: parseInt(l), val: parseInt(v)};
-                await api('PUT', d);
-                alert("Đã tạo mã " + c);
-                location.reload();
-            }
-        }
+function checkAdmin() {if(prompt("Key:")==KEY) document.getElementById("admin").style.display="block";}
+async function themAcc() {let a=prompt("Acc:"); if(a) {let d=await api("GET"); if(!d.accounts) d.accounts={}; d.accounts["a"+Date.now()]=a; await api("PUT", d); location.reload();}}
+async function taoMa() {let c=prompt("Mã"),v=prompt("Tiền"),l=prompt("Lượt"); if(c&&v) {let d=await api("GET"); if(!d.codes) d.codes={}; d.codes[c]={limit:parseInt(l),val:parseInt(v)}; await api("PUT", d); location.reload();}}
+async function resetServer() {if(confirm("RESET?")) {await api("PUT", {accounts:{},codes:{},users:{}}); location.reload();}}
 
-        function checkAdmin() { if(prompt("Key:") == ADMIN_KEY) document.getElementById('adminPanel').style.display = 'block'; }
-        async function quay() { let d = await api('GET'); if(d.users[user].balance < 10000) return alert("Thiếu tiền!"); d.users[user].balance -= 10000; let w = Math.random() > 0.8 ? 50000 : 0; d.users[user].balance += w; await api('PUT', d); alert(w>0?"Trúng 50k!":"Chúc may mắn!"); location.reload(); }
-        async function muaAcc() { let d = await api('GET'); let k = Object.keys(d.accounts || {}); if(k.length==0) return alert("Hết!"); let a = d.accounts[k[0]]; delete d.accounts[k[0]]; d.users[user].balance -= 400000; await api('PUT', d); alert("Acc: "+a); location.reload(); }
-        async function themAcc() { let a = prompt("Acc:"); if(a) { let d = await api('GET'); if(!d.accounts) d.accounts={}; d.accounts["a"+Date.now()]=a; await api('PUT', d); location.reload(); } }
-        async function resetServer() { if(confirm("RESET?")) { await api('PUT', {accounts:{}, codes:{}, users:{}}); location.reload(); } }
-
-        init();
-    </script>
+init();
+</script>
 </body>
 </html>
-; await api('PUT', d); location.reload(); } }
-        async function resetServer() { if(confirm("RESET?")) { await api('PUT', {accounts:{}, codes:{}, users:{}}); location.reload(); } }
-
-        init();
-    </script>
-</body>
-</html>
-  }
-        
-        // ... (các hàm themAcc, taoMa, resetServer giữ nguyên như code trước) ...
-        async function themAcc() { let a = prompt("User:Pass"); if(a) { let d = await api('GET'); if(!d.accounts) d.accounts={}; d.accounts["a"+Date.now()] = a; await api('PUT', d); location.reload(); } }
-        async function taoMa() { let c = prompt("Mã"), v = prompt("Tiền"), l = prompt("Lượt"); if(c&&v&&l) { let d = await api('GET'); if(!d.codes) d.codes={}; d.codes[c] = {limit: parseInt(l), val: parseInt(v)}; await api('PUT', d); location.reload(); } }
-        async function resetServer() { if(confirm("RESET?")) { await api('PUT', {accounts:{}, codes:{}, users:{}}); location.reload(); } }
-
-        updateUI();
-    </script>
-</body>
-</html>
+  
