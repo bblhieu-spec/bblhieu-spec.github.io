@@ -6,7 +6,7 @@
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; text-align: center; }
         .box { border: 3px solid #ffd700; padding: 20px; margin: 15px 0; border-radius: 20px; background: linear-gradient(145deg, #1a0000, #330000); box-shadow: 0 0 10px #ffd700; }
-        .btn { background: #d32f2f; color: white; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
+        .btn { background: #d32f2f; color: white; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; display: block; }
         .admin-box { border: 2px dashed #fff; padding: 15px; margin-top: 20px; display: none; }
         img { max-width: 250px; border: 3px solid #fff; border-radius: 10px; margin: 10px 0; }
     </style>
@@ -26,7 +26,6 @@
     <div class="box">
         <button class="btn" style="background:#f39c12;" onclick="quay()">QUAY NGAY (10k)</button>
     </div>
-
     <div class="box">
         <button class="btn" onclick="muaAcc()">MUA NGAY (RANDOM ACC)</button>
     </div>
@@ -35,74 +34,78 @@
 
     <div id="adminPanel" class="admin-box">
         <h3>🛠 ADMIN PANEL</h3>
-        <button class="btn" onclick="taoMa()">TẠO MÃ QUÀ</button>
-        <button class="btn" style="background:#8e44ad;" onclick="resetServer()">RESET TIỀN TOÀN SERVER</button>
+        <button class="btn" style="background:#2980b9;" onclick="taoMa()">TẠO MÃ QUÀ + GIỚI HẠN LƯỢT</button>
+        <button class="btn" style="background:#333;" onclick="confirmReset()">RESET TOÀN SERVER</button>
     </div>
 
     <script>
-        // QUAN TRỌNG: Đổi số này để reset toàn server
-        const currentServerVersion = 1; 
-
-        function checkServerReset() {
-            if (localStorage.getItem('serverVersion') != currentServerVersion) {
-                localStorage.setItem('myBal', 0);
-                localStorage.setItem('serverVersion', currentServerVersion);
-            }
-        }
-
-        function resetServer() {
-            if(confirm("CẢNH BÁO: Hành động này sẽ đưa tiền của TẤT CẢ người dùng về 0. Bạn chắc chứ?")) {
-                alert("Hãy nhờ chủ shop đổi số 'currentServerVersion' trong mã nguồn từ 1 lên 2 (hoặc số bất kỳ) để áp dụng reset toàn server!");
-            }
-        }
-
         function updateUI() {
-            checkServerReset();
+            if (localStorage.getItem('isReset') == 'true') {
+                localStorage.setItem('myBal', 0);
+                localStorage.removeItem('isReset');
+                location.reload();
+            }
             document.getElementById('balance').innerText = (parseInt(localStorage.getItem('myBal')) || 0).toLocaleString();
         }
 
+        // TẠO MÃ CÓ GIỚI HẠN
         function taoMa() {
-            let code = prompt("Tên mã:");
-            let money = prompt("Số tiền:");
-            if(code && money) {
-                localStorage.setItem('code_' + code, money);
-                alert('Đã tạo mã: ' + code);
+            let code = prompt("Nhập tên mã quà:");
+            let money = prompt("Nhập số tiền:");
+            let limit = prompt("Nhập số lượt nhập tối đa:");
+            if(code && money && limit) {
+                localStorage.setItem('code_val_' + code, money);
+                localStorage.setItem('code_limit_' + code, limit);
+                alert('Đã tạo mã ' + code + ' với ' + limit + ' lượt nhập.');
             }
         }
 
+        // NHẬP MÃ & TRỪ LƯỢT
         function nhapCode() {
             let inputCode = prompt("Nhập mã quà:");
-            let val = localStorage.getItem('code_' + inputCode);
-            if(val) {
+            let val = localStorage.getItem('code_val_' + inputCode);
+            let limit = parseInt(localStorage.getItem('code_limit_' + inputCode));
+
+            if(val && limit > 0) {
                 let s = parseInt(localStorage.getItem('myBal') || 0) + parseInt(val);
                 localStorage.setItem('myBal', s);
+                // Trừ lượt nhập
+                localStorage.setItem('code_limit_' + inputCode, limit - 1);
                 updateUI();
-                alert('Đã cộng ' + val);
-                localStorage.removeItem('code_' + inputCode);
-            } else { alert('Mã sai!'); }
+                alert('Chúc mừng! Đã cộng ' + parseInt(val).toLocaleString() + ' VNĐ. Còn ' + (limit - 1) + ' lượt nhập.');
+            } else if (limit === 0) {
+                alert('Mã này đã hết lượt nhập!');
+            } else {
+                alert('Mã không tồn tại!');
+            }
         }
 
+        // ... (Giữ nguyên các hàm quay, muaAcc, confirmReset) ...
         function quay() {
             let s = parseInt(localStorage.getItem('myBal') || 0);
             if(s < 10000) { alert('Thiếu tiền!'); return; }
             s -= 10000;
-            let w = Math.random() < 0.9 ? 1000 : 50000;
-            s += w;
+            s += (Math.random() < 0.9 ? 1000 : 50000);
             localStorage.setItem('myBal', s);
             updateUI();
-            alert('Trúng ' + w.toLocaleString());
+            alert('Đã quay xong!');
         }
 
         function muaAcc() {
             const accList = ["huankl2k5:huan2005", "anhhai0916:Thanhhai102", "tu2k7tu:tu2007tu", "kol.z16:Dinhloc@123", "lelam04112003:04112003lelam", "ngocnguyen85:zzz01633049453", "gghhggdydyd:1638zabao"];
             let s = parseInt(localStorage.getItem('myBal') || 0);
             if(s >= 400000) {
-                let randomAcc = accList[Math.floor(Math.random() * accList.length)];
-                s -= 400000;
-                localStorage.setItem('myBal', s);
+                localStorage.setItem('myBal', s - 400000);
                 updateUI();
-                alert('MUA THÀNH CÔNG!\nAcc: ' + randomAcc);
+                alert('MUA THÀNH CÔNG!\nAcc: ' + accList[Math.floor(Math.random() * accList.length)]);
             } else { alert('Thiếu tiền!'); }
+        }
+
+        function confirmReset() {
+            if(confirm("Xác nhận reset toàn bộ tiền?")) {
+                localStorage.setItem('isReset', 'true');
+                alert("Đã gửi lệnh Reset!");
+            }
         }
 
         updateUI();
