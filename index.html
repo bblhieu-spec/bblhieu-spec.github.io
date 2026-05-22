@@ -5,60 +5,81 @@
     <title>SHOP ACC LIÊN QUÂN - NGÔ NGỌC HÙNG</title>
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; text-align: center; }
-        .decor { font-size: 24px; margin-bottom: 10px; color: #ffd700; }
-        .box { border: 3px solid #ffd700; padding: 20px; margin: 15px 0; border-radius: 20px; background: linear-gradient(145deg, #1a0000, #330000); box-shadow: 0 0 15px #d32f2f; }
-        .btn { background: #d32f2f; color: white; padding: 18px; border: 2px solid #ffd700; border-radius: 10px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn-spin { background: #f39c12; }
-        .admin-box { border: 2px dashed #fff; padding: 20px; margin-top: 30px; border-radius: 15px; background: #222; display: none; }
+        .box { border: 3px solid #ffd700; padding: 20px; margin: 15px 0; border-radius: 20px; background: linear-gradient(145deg, #1a0000, #330000); box-shadow: 0 0 10px #ffd700; }
+        .btn { background: #d32f2f; color: white; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
+        .admin-box { border: 2px dashed #fff; padding: 15px; margin-top: 20px; display: none; }
         img { max-width: 250px; border: 3px solid #fff; border-radius: 10px; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-    <div class="decor">🐉 🐲 鳳 麒麟 🐲 🐉</div>
     <h1>SHOP ACC LIÊN QUÂN</h1>
     <h2>NGÔ NGỌC HÙNG</h2>
 
     <div class="box">
         <h3>Số dư: <span id="balance">0</span> VNĐ</h3>
-        <p>Quét QR ZaloPay để nạp tiền</p>
         <img src="https://i.postimg.cc/fSDJJ0wc/14604.jpg" alt="QR Nạp Tiền">
-        <p style="font-size: 13px; color: #ffeb3b;">Sau khi chuyển khoản, nhấn nút dưới đây để thông báo cho chủ shop duyệt tiền.</p>
-        <button class="btn" style="background:#27ae60;" onclick="alert('Đã gửi yêu cầu nạp tiền! Vui lòng đợi chủ shop duyệt trong 5-10 phút.');">THÔNG BÁO ĐÃ NẠP (ĐỢI DUYỆT)</button>
+        <button class="btn" style="background:#27ae60;" onclick="alert('Đã gửi yêu cầu!');">THÔNG BÁO ĐÃ NẠP</button>
+        <button class="btn" style="background:#3498db;" onclick="nhapCode()">NHẬP MÃ QUÀ</button>
     </div>
 
     <div class="box">
-        <h3>🎁 VÒNG QUAY MAY MẮN</h3>
-        <button class="btn btn-spin" onclick="quay()">QUAY NGAY (10k)</button>
+        <button class="btn" style="background:#f39c12;" onclick="quay()">QUAY NGAY (10k)</button>
     </div>
 
     <div class="box">
-        <h3>ACC LIÊN QUÂN - Giá: 400.000 VNĐ</h3>
         <button class="btn" onclick="muaAcc()">MUA NGAY (RANDOM ACC)</button>
     </div>
 
-    <button class="btn" style="background:#000; border-color:#fff;" onclick="let k=prompt('Nhập Key Quản Trị:'); if(k=='hung0099') document.getElementById('adminPanel').style.display='block'; else alert('Sai mật khẩu!');">🛠 QUẢN TRỊ VIÊN</button>
+    <button class="btn" style="background:#000;" onclick="let k=prompt('Nhập Key:'); if(k=='hung0099') document.getElementById('adminPanel').style.display='block';">🛠 QUẢN TRỊ VIÊN</button>
 
     <div id="adminPanel" class="admin-box">
-        <h3>🛠 BẢNG ĐIỀU KHIỂN (ADMIN)</h3>
-        <button class="btn" style="background:#555;" onclick="let n=prompt('Nhập số dư mới cho khách:'); if(n){localStorage.setItem('myBal',n); document.getElementById('balance').innerText=parseInt(n).toLocaleString(); alert('Đã duyệt tiền thành công!');}">DUYỆT TIỀN (SỬA SỐ DƯ)</button>
-        <button class="btn" style="background:#333;" onclick="if(confirm('Bạn có chắc muốn Reset shop?')) { localStorage.clear(); location.reload(); }">RESET SHOP</button>
+        <h3>🛠 ADMIN PANEL</h3>
+        <button class="btn" onclick="taoMa()">TẠO MÃ QUÀ</button>
+        <button class="btn" style="background:#8e44ad;" onclick="resetServer()">RESET TIỀN TOÀN SERVER</button>
     </div>
 
     <script>
-        const accList = [
-            "1: huankl2k5:huan2005",
-            "2: anhhai0916:Thanhhai102",
-            "3: tu2k7tu:tu2007tu",
-            "4: kol.z16:Dinhloc@123",
-            "5: lelam04112003:04112003lelam",
-            "6: ngocnguyen85:zzz01633049453",
-            "7: gghhggdydyd:1638zabao"
-        ];
+        // QUAN TRỌNG: Đổi số này để reset toàn server
+        const currentServerVersion = 1; 
+
+        function checkServerReset() {
+            if (localStorage.getItem('serverVersion') != currentServerVersion) {
+                localStorage.setItem('myBal', 0);
+                localStorage.setItem('serverVersion', currentServerVersion);
+            }
+        }
+
+        function resetServer() {
+            if(confirm("CẢNH BÁO: Hành động này sẽ đưa tiền của TẤT CẢ người dùng về 0. Bạn chắc chứ?")) {
+                alert("Hãy nhờ chủ shop đổi số 'currentServerVersion' trong mã nguồn từ 1 lên 2 (hoặc số bất kỳ) để áp dụng reset toàn server!");
+            }
+        }
 
         function updateUI() {
-            // Lấy số dư, nếu chưa có thì để là 0
+            checkServerReset();
             document.getElementById('balance').innerText = (parseInt(localStorage.getItem('myBal')) || 0).toLocaleString();
+        }
+
+        function taoMa() {
+            let code = prompt("Tên mã:");
+            let money = prompt("Số tiền:");
+            if(code && money) {
+                localStorage.setItem('code_' + code, money);
+                alert('Đã tạo mã: ' + code);
+            }
+        }
+
+        function nhapCode() {
+            let inputCode = prompt("Nhập mã quà:");
+            let val = localStorage.getItem('code_' + inputCode);
+            if(val) {
+                let s = parseInt(localStorage.getItem('myBal') || 0) + parseInt(val);
+                localStorage.setItem('myBal', s);
+                updateUI();
+                alert('Đã cộng ' + val);
+                localStorage.removeItem('code_' + inputCode);
+            } else { alert('Mã sai!'); }
         }
 
         function quay() {
@@ -69,20 +90,19 @@
             s += w;
             localStorage.setItem('myBal', s);
             updateUI();
-            alert('Chúc mừng! Bạn trúng ' + w.toLocaleString() + ' VNĐ');
+            alert('Trúng ' + w.toLocaleString());
         }
 
         function muaAcc() {
+            const accList = ["huankl2k5:huan2005", "anhhai0916:Thanhhai102", "tu2k7tu:tu2007tu", "kol.z16:Dinhloc@123", "lelam04112003:04112003lelam", "ngocnguyen85:zzz01633049453", "gghhggdydyd:1638zabao"];
             let s = parseInt(localStorage.getItem('myBal') || 0);
             if(s >= 400000) {
                 let randomAcc = accList[Math.floor(Math.random() * accList.length)];
                 s -= 400000;
                 localStorage.setItem('myBal', s);
                 updateUI();
-                alert('MUA THÀNH CÔNG!\nThông tin tài khoản ngẫu nhiên:\n' + randomAcc);
-            } else {
-                alert('Thiếu tiền!');
-            }
+                alert('MUA THÀNH CÔNG!\nAcc: ' + randomAcc);
+            } else { alert('Thiếu tiền!'); }
         }
 
         updateUI();
