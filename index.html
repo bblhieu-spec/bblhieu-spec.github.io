@@ -5,82 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHOP ĐẾ VƯƠNG - LIÊN QUÂN</title>
     <style>
-        body { background: #0d050a; color: #ff99cc; font-family: sans-serif; text-align: center; padding: 10px; margin: 0; }
-        .banner-code { background: linear-gradient(135deg, #2a0e1b, #5d0030); padding: 20px 10px; border-radius: 15px; border: 3px solid #ff3399; margin-bottom: 20px; }
-        .banner-code h1 { color: #ffcc00; text-transform: uppercase; font-size: 24px; margin: 0; }
-        .banner-code p { color: #fff; font-weight: bold; margin: 5px 0 0 0; font-size: 16px; }
-        .container { background: #1f0a15; border: 2px solid #ff3399; border-radius: 15px; padding: 15px; }
-        .btn { display: block; width: 100%; padding: 18px; margin: 10px 0; background: #cc3388; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; }
-        #log { color: #fff; background: #440022; padding: 10px; font-size: 14px; margin-bottom: 10px; border-radius: 5px; }
-        #history { color: #00ff00; background: #002200; padding: 10px; border: 1px solid #00ff00; border-radius: 8px; font-size: 14px; text-align: left; margin-top: 10px; }
+        body { background: #050505; color: #ffd700; font-family: 'Arial', sans-serif; text-align: center; padding: 10px; margin: 0; overflow-x: hidden; }
+        #canvas { position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none; }
+        .box-style { background: linear-gradient(135deg, #220000, #000); border: 2px solid #ffd700; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 0 25px #ffd700; }
+        .neon-title { font-size: 32px; text-transform: uppercase; color: #fff; text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de; }
+        .btn { display: block; width: 100%; padding: 18px; margin: 12px 0; background: #000; color: #ffd700; border: 2px solid #ffd700; border-radius: 10px; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        .btn:hover { background: #ffd700; color: #000; }
+        #history { color: #0f0; background: #000; padding: 10px; border-radius: 10px; text-align: left; font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="banner-code">
-        <h1>SHOP ĐẾ VƯƠNG</h1>
-        <p>LIÊN QUÂN - VIP & UY TÍN</p>
-        <p>Chủ shop: NGÔ NGỌC HÙNG</p>
-    </div>
-    <div class="container">
-        <div id="log">Đang tải dữ liệu...</div>
-        <h2 id="bal" style="font-size: 22px;">Số dư: 0 VNĐ</h2>
-        <button class="btn" onclick="nap()">1. NẠP MÃ CODE</button>
-        <button class="btn" onclick="hanhDong('QUAY')">2. QUAY THƯỞNG</button>
-        <button class="btn" onclick="hanhDong('MUA')">3. MUA ACC</button>
-        
-        <div id="admin-panel" style="display:none; margin-top:20px; border: 1px solid #fff; padding: 10px;">
-            <button class="btn" style="background:#880044" onclick="adminAction('TAO')">TẠO MÃ</button>
-            <button class="btn" style="background:#880044" onclick="adminAction('THEM')">THÊM ACC</button>
-            <button class="btn" style="background:#880044" onclick="adminAction('GIA')">ĐỔI GIÁ</button>
-            <button class="btn" style="background:#ff0000" onclick="adminAction('RESET')">RESET</button>
-        </div>
+    <canvas id="canvas"></canvas>
 
-        <h3 style="font-size: 18px;">LỊCH SỬ MUA ACC:</h3>
-        <div id="history">Chưa có giao dịch.</div>
-        <div onclick="moAdminBiMat()" style="margin-top:30px; font-size:12px; color:#666; cursor:pointer;">© Shop Đế Vương System</div>
+    <div class="box-style">
+        <h1 class="neon-title">ĐẾ VƯƠNG</h1>
+        <div style="font-size: 18px; font-weight: bold; color: #ffcc00; margin-top: 10px;">NGÔ NGỌC HÙNG - UY TÍN SỐ 1</div>
     </div>
+
+    <div class="box-style">
+        <h2 id="bal">Đang tải số dư...</h2>
+        <button class="btn" onclick="nap()">1. NẠP MÃ CODE 💎</button>
+        <button class="btn" onclick="hanhDong('QUAY')">2. QUAY RỒNG 🐉</button>
+        <button class="btn" onclick="hanhDong('MUA')">3. MUA ACC VIP 🎰</button>
+    </div>
+
+    <div id="admin-panel" style="display:none;" class="box-style">
+        <h3>BẢNG QUẢN TRỊ</h3>
+        <button class="btn" onclick="adminAction('TAO')">TẠO MÃ</button>
+        <button class="btn" onclick="adminAction('THEM')">THÊM ACC</button>
+        <button class="btn" onclick="adminAction('GIA')">ĐỔI GIÁ</button>
+        <button class="btn" onclick="adminAction('RESET')" style="background:#800;">RESET SERVER</button>
+    </div>
+
+    <h3>LỊCH SỬ GIAO DỊCH:</h3>
+    <div id="history">Chưa có giao dịch.</div>
+    <div onclick="moAdmin()" style="margin-top:30px; font-size:10px; color:#555; cursor:pointer;">© HUNGDEVUONG System</div>
 
     <script>
+        // --- HIỆU ỨNG HẠT RƠI ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particles = [];
+        for(let i=0; i<60; i++) particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2+1});
+        function draw() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#ffd700";
+            particles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); p.y += p.s; if(p.y > canvas.height) p.y=0; });
+            requestAnimationFrame(draw);
+        } draw();
+
+        // --- LOGIC SHOP ---
         const B = "6a104353ee5a733b12ffcdf5";
         const KEY = "$2a$10$w2vogPsNVk6QlFdnS0ZCwuHcD/tdk9fPnLZB0fCAcJMGFBklvUyrS".trim();
         let d = null;
+        
         async function load() {
-            try {
-                let r = await fetch("https://api.jsonbin.io/v3/b/"+B+"/latest");
-                d = (await r.json()).record;
-                document.getElementById('bal').innerText = "Số dư: " + (d.users?.User123?.balance || 0).toLocaleString('vi-VN') + " VNĐ";
-                document.getElementById('history').innerText = d.history || "Chưa có giao dịch.";
-            } catch(e) { }
+            let r = await fetch("https://api.jsonbin.io/v3/b/"+B+"/latest");
+            d = (await r.json()).record;
+            document.getElementById('bal').innerText = "Số dư: " + (d.users?.User123?.balance || 0).toLocaleString('vi-VN') + " VNĐ";
+            document.getElementById('history').innerText = d.history || "Chưa có giao dịch.";
         }
         load();
+
         async function luu(data) {
+            alert("Đang xử lý dữ liệu...");
             let res = await fetch("https://api.jsonbin.io/v3/b/"+B, { method: "PUT", headers: {"Content-Type":"application/json", "X-Master-Key": KEY}, body: JSON.stringify(data) });
-            if(res.ok) load();
+            if(res.ok) { alert("Thành công!"); load(); } else alert("Lỗi kết nối!");
         }
-        function nap() { let c=prompt("Nhập mã:"); if(d.codes[c]&&d.codes[c].limit>0) { d.users.User123.balance += d.codes[c].val; d.codes[c].limit--; alert("Nạp thành công!"); luu(d); } else alert("Mã sai hoặc hết!"); }
+
+        function nap() {
+            let c = prompt("Nhập mã:");
+            if (!d.codes || !d.codes[c]) return alert("Mã không tồn tại!");
+            if (d.codes[c].limit > 0) {
+                d.users.User123.balance += d.codes[c].val;
+                d.codes[c].limit--;
+                alert("Nạp thành công!"); luu(d);
+            } else alert("Mã đã hết!");
+        }
+
         async function hanhDong(t) {
+            let gia = d.giaAcc || 400000;
             if(t=='QUAY') {
-                if(d.users.User123.balance < 10000) return alert("Thiếu tiền!");
+                if(d.users.User123.balance < 10000) return alert("Thiếu tiền quay!");
                 let r = Math.random()*100, v = (r < 3 ? 100000 : (r < 9 ? 50000 : (r < 21 ? 20000 : (r < 37 ? 10000 : 0))));
                 d.users.User123.balance = d.users.User123.balance - 10000 + v;
                 alert(v > 0 ? "Trúng " + v.toLocaleString('vi-VN') + " VNĐ!" : "Chúc may mắn!"); luu(d);
             } else {
                 let k = Object.keys(d.accounts || {});
                 if(k.length==0) return alert("Hết acc!");
-                if(d.users.User123.balance < (d.giaAcc||400000)) return alert("Thiếu tiền!");
+                if(d.users.User123.balance < gia) return alert("Thiếu tiền!");
                 let s = k[Math.floor(Math.random() * k.length)];
-                d.users.User123.balance -= (d.giaAcc||400000);
+                d.users.User123.balance -= gia;
                 d.history = "Đã mua: " + d.accounts[s] + "\n" + (d.history || "");
                 alert("MUA THÀNH CÔNG: " + d.accounts[s]);
                 delete d.accounts[s]; luu(d);
             }
         }
-        function moAdminBiMat() { if(prompt("Xác nhận Admin:") === "HUNGDEVUONG") document.getElementById('admin-panel').style.display = 'block'; }
+
+        function moAdmin() { if(prompt("Mật khẩu Admin:") === "HUNGDEVUONG") document.getElementById('admin-panel').style.display = 'block'; }
+        
         async function adminAction(type) {
-            if(type=='TAO') { let m=prompt("Mã:"), v=prompt("Tiền:"), sl=prompt("SL:"); d.codes[m]={limit:parseInt(sl), val:parseInt(v)}; luu(d); }
-            else if(type=='THEM') { let i=prompt("Dán Acc:"); if(!i) return; i.split('\n').forEach(l=>{ let p=l.trim().split(/[|:-]+/); if(p.length>=2) d.accounts["Acc"+Date.now()+Math.random()]=p[0].trim()+"|"+p[1].trim(); }); alert("Đã thêm!"); luu(d); }
-            else if(type=='GIA') { d.giaAcc=parseInt(prompt("Giá:")); luu(d); }
-            else if(type=='RESET') { if(confirm("XÓA HẾT?")) luu({users:{"User123":{balance:0}}, codes:{}, accounts:{}, giaAcc:400000}); }
+            if(type=='TAO') { let m=prompt("Mã:"), v=prompt("Tiền:"), sl=prompt("SL:"); d.codes[m]={limit:parseInt(sl), val:parseInt(v)}; alert("Đã tạo mã!"); luu(d); }
+            else if(type=='THEM') { let i=prompt("Dán Acc:"); if(!i) return; i.split('\n').forEach(l=>{ let p=l.trim().split(/[|:-]+/); if(p.length>=2) d.accounts["Acc"+Date.now()+Math.random()]=p[0].trim()+"|"+p[1].trim(); }); alert("Đã thêm acc!"); luu(d); }
+            else if(type=='GIA') { d.giaAcc=parseInt(prompt("Giá mới:")); alert("Đã đổi giá!"); luu(d); }
+            else if(type=='RESET') { if(confirm("XÓA HẾT?")) { await luu({users:{"User123":{balance:0}}, codes:{}, accounts:{}, giaAcc:400000}); alert("Đã reset!"); } }
         }
     </script>
 </body>
