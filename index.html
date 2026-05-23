@@ -5,17 +5,9 @@
     <title>SHOP ĐẾ VƯƠNG - LIÊN QUÂN</title>
     <style>
         body { background: #0d050a; color: #ff99cc; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 10px; }
-        
-        /* BANNER DÀN ĐỀU, CHỮ TO RÕ */
-        .banner-code { 
-            background: linear-gradient(135deg, #2a0e1b, #5d0030); 
-            padding: 25px 15px; border-radius: 15px; border: 3px solid #ff3399; 
-            margin-bottom: 20px; box-shadow: 0 0 15px #ff3399;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
+        .banner-code { background: linear-gradient(135deg, #2a0e1b, #5d0030); padding: 25px 15px; border-radius: 15px; border: 3px solid #ff3399; margin-bottom: 20px; box-shadow: 0 0 15px #ff3399; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .banner-code h1 { color: #ffcc00; text-transform: uppercase; font-size: 26px; margin: 0; text-shadow: 2px 2px #ff0000; }
         .banner-code p { color: #fff; font-weight: bold; margin: 5px 0 0 0; font-size: 18px; }
-
         .container { background: #1f0a15; border: 2px solid #ff3399; border-radius: 15px; padding: 15px; box-shadow: 0 0 10px #ff3399; }
         .btn { display: block; width: 100%; padding: 16px; margin: 10px 0; background: #cc3388; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
         #log { color: #fff; background: #440022; padding: 10px; font-size: 14px; border: 1px solid #ff66b2; margin-bottom: 10px; border-radius: 5px; }
@@ -28,15 +20,12 @@
         <p>LIÊN QUÂN - VIP & UY TÍN</p>
         <p>Chủ shop: NGÔ NGỌC HÙNG</p>
     </div>
-
     <div class="container">
         <div id="log">Đang tải dữ liệu...</div>
         <h2 id="bal">Số dư: 0 VNĐ</h2>
-        
         <button class="btn" onclick="nap()">1. NẠP MÃ CODE</button>
         <button class="btn" onclick="hanhDong('QUAY')">2. QUAY THƯỞNG LIÊN QUÂN</button>
         <button class="btn" onclick="hanhDong('MUA')">3. MUA ACC LIÊN QUÂN</button>
-        
         <div id="admin-panel" style="display:none; margin-top:20px; border: 2px solid #880044; padding: 10px;">
             <h3 style="color:#fff">BẢNG QUẢN TRỊ ĐẾ VƯƠNG</h3>
             <button class="btn" style="background:#880044" onclick="adminAction('TAO')">TẠO MÃ</button>
@@ -44,92 +33,60 @@
             <button class="btn" style="background:#880044" onclick="adminAction('GIA')">ĐỔI GIÁ ACC</button>
             <button class="btn" style="background:#ff0000" onclick="adminAction('RESET')">RESET SERVER</button>
         </div>
-
         <h3>LỊCH SỬ MUA ACC:</h3>
         <div id="history">Chưa có giao dịch.</div>
         <div onclick="moAdminBiMat()" style="margin-top:50px; font-size:10px; color:#444; cursor:pointer;">© Shop Đế Vương System</div>
     </div>
-
     <script>
         const B = "6a104353ee5a733b12ffcdf5";
         const KEY = "$2a$10$w2vogPsNVk6QlFdnS0ZCwuHcD/tdk9fPnLZB0fCAcJMGFBklvUyrS".trim();
         let d = null;
-
-        function formatMoney(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
-        function log(m) { document.getElementById('log').innerText = m; }
-
         async function load() {
             try {
                 let r = await fetch("https://api.jsonbin.io/v3/b/"+B+"/latest");
                 d = (await r.json()).record;
-                document.getElementById('bal').innerText = "Số dư: " + formatMoney(d.users?.User123?.balance || 0) + " VNĐ";
+                document.getElementById('bal').innerText = "Số dư: " + (d.users?.User123?.balance || 0).toLocaleString('vi-VN') + " VNĐ";
                 document.getElementById('history').innerText = d.history || "Chưa có giao dịch.";
-            } catch(e) { log("Lỗi kết nối!"); }
+            } catch(e) { console.log("Lỗi kết nối"); }
         }
         load();
-
         async function luu(data) {
-            let res = await fetch("https://api.jsonbin.io/v3/b/"+B, {
-                method: "PUT", headers: {"Content-Type":"application/json", "X-Master-Key": KEY},
-                body: JSON.stringify(data)
-            });
-            if(res.ok) { log("Thành công!"); load(); }
+            let res = await fetch("https://api.jsonbin.io/v3/b/"+B, { method: "PUT", headers: {"Content-Type":"application/json", "X-Master-Key": KEY}, body: JSON.stringify(data) });
+            if(res.ok) load();
         }
-
         async function nap() {
             let c = prompt("Nhập mã:");
-            if (!d.codes || !d.codes[c]) return log("Mã không tồn tại!");
+            if (!d.codes || !d.codes[c]) return alert("Mã không tồn tại!");
             if (d.codes[c].limit > 0) {
                 d.users.User123.balance += d.codes[c].val;
                 d.codes[c].limit -= 1;
                 alert("Nạp thành công!"); await luu(d);
-            } else alert("Mã đã hết lượt dùng!");
+            } else alert("Mã đã hết!");
         }
-
         async function hanhDong(t) {
-            let gia = d.giaAcc || 400000;
             if(t=='QUAY') {
-                if(d.users.User123.balance < 10000) return log("Thiếu tiền!");
-                let rand = Math.random() * 100;
-                let thuong = (rand < 3 ? 100000 : (rand < 9 ? 50000 : (rand < 21 ? 20000 : (rand < 37 ? 10000 : 0))));
-                d.users.User123.balance = d.users.User123.balance - 10000 + thuong;
-                alert(thuong > 0 ? "Trúng " + formatMoney(thuong) + " VNĐ!" : "Chúc may mắn!");
-                await luu(d);
+                if(d.users.User123.balance < 10000) return alert("Thiếu tiền!");
+                let r = Math.random()*100;
+                let v = (r < 3 ? 100000 : (r < 9 ? 50000 : (r < 21 ? 20000 : (r < 37 ? 10000 : 0))));
+                d.users.User123.balance = d.users.User123.balance - 10000 + v;
+                alert(v > 0 ? "Trúng " + v.toLocaleString('vi-VN') + " VNĐ!" : "Chúc may mắn!"); await luu(d);
             } else {
                 let k = Object.keys(d.accounts || {});
-                if(k.length == 0) return log("Hết acc!");
-                if(d.users.User123.balance < gia) return log("Thiếu tiền!");
-                let selectedKey = k[Math.floor(Math.random() * k.length)];
-                d.users.User123.balance -= gia;
-                let display = "TK: " + d.accounts[selectedKey];
-                d.history = "Đã mua: " + display + "\n" + (d.history || "");
-                alert("MUA THÀNH CÔNG: " + display);
-                delete d.accounts[selectedKey];
-                await luu(d);
+                if(k.length == 0) return alert("Hết acc!");
+                if(d.users.User123.balance < (d.giaAcc||400000)) return alert("Thiếu tiền!");
+                let s = k[Math.floor(Math.random() * k.length)];
+                d.users.User123.balance -= (d.giaAcc||400000);
+                d.history = "Đã mua: " + d.accounts[s] + "\n" + (d.history || "");
+                alert("MUA THÀNH CÔNG: " + d.accounts[s]);
+                delete d.accounts[s]; await luu(d);
             }
         }
-
-        function moAdminBiMat() {
-            if(prompt("Xác nhận Admin:") === "HUNGDEVUONG") document.getElementById('admin-panel').style.display = 'block';
-        }
-
+        function moAdminBiMat() { if(prompt("Xác nhận Admin:") === "HUNGDEVUONG") document.getElementById('admin-panel').style.display = 'block'; }
         async function adminAction(type) {
-            if(type=='TAO') { 
-                let m = prompt("Mã:"); let v = prompt("Tiền:"); let sl = prompt("Số lượng:");
-                d.codes[m]={limit:parseInt(sl), val:parseInt(v)}; await luu(d); 
-            } else if(type=='THEM') { 
-                let input = prompt("Dán danh sách Acc:");
-                if(!input) return;
-                input.split('\n').forEach(line => {
-                    let p = line.trim().split(/[|:-]+/);
-                    if(p.length >= 2) d.accounts["Acc"+Date.now()+Math.random()] = p[0].trim() + "|" + p[1].trim();
-                });
-                alert("Đã thêm thành công!"); await luu(d);
-            } else if(type=='GIA') { 
-                let g = prompt("Giá mới:"); d.giaAcc=parseInt(g); await luu(d); 
-            } else if(type=='RESET') { 
-                if(confirm("XÓA HẾT?")) await luu({users:{"User123":{balance:0}}, codes:{}, accounts:{}, giaAcc:400000}); 
-            }
+            if(type=='TAO') { let m=prompt("Mã:"), v=prompt("Tiền:"), sl=prompt("SL:"); d.codes[m]={limit:parseInt(sl), val:parseInt(v)}; await luu(d); }
+            else if(type=='THEM') { let i=prompt("Dán Acc:"); if(!i) return; i.split('\n').forEach(l=>{ let p=l.trim().split(/[|:-]+/); if(p.length>=2) d.accounts["Acc"+Date.now()+Math.random()]=p[0].trim()+"|"+p[1].trim(); }); await luu(d); }
+            else if(type=='GIA') { d.giaAcc=parseInt(prompt("Giá:")); await luu(d); }
+            else if(type=='RESET') { if(confirm("XÓA HẾT?")) await luu({users:{"User123":{balance:0}}, codes:{}, accounts:{}, giaAcc:400000}); }
         }
     </script>
 </body>
