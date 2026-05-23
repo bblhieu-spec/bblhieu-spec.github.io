@@ -5,6 +5,7 @@
     <title>SHOP ĐẾ VƯƠNG - LIÊN QUÂN</title>
     <style>
         body { background: #0d050a; color: #ff99cc; font-family: sans-serif; text-align: center; padding: 10px; }
+        .banner { width: 100%; max-width: 600px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #ff3399; }
         .container { background: #1f0a15; border: 2px solid #ff3399; border-radius: 15px; padding: 15px; box-shadow: 0 0 10px #ff3399; }
         .btn { display: block; width: 100%; padding: 15px; margin: 8px 0; background: #cc3388; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         #log { color: #fff; background: #440022; padding: 8px; font-size: 13px; border: 1px solid #ff66b2; margin-bottom: 10px; border-radius: 5px; }
@@ -13,8 +14,9 @@
     </style>
 </head>
 <body>
+    <img src="https://i.imgur.com/G56550G.jpeg" class="banner" alt="Shop Banner">
     <div class="container">
-        <h1 style="color: #ff3399; text-shadow: 0 0 5px #ff3399;">SHOP ĐẾ VƯƠNG - LIÊN QUÂN</h1>
+        <h1>SHOP ĐẾ VƯƠNG - LIÊN QUÂN</h1>
         <div id="log">Đang tải dữ liệu...</div>
         <h2 id="bal">Số dư: 0 VNĐ</h2>
         
@@ -22,19 +24,17 @@
         <button class="btn" onclick="hanhDong('QUAY')">2. QUAY THƯỞNG LIÊN QUÂN</button>
         <button class="btn" onclick="hanhDong('MUA')">3. MUA ACC LIÊN QUÂN</button>
         
-        <div class="admin-box">
-            <input type="password" id="adminKey" placeholder="Mật khẩu Admin" style="padding:8px; border-radius:5px; border:none;">
-            <button onclick="moAdmin()" style="padding:8px; cursor:pointer;">ĐĂNG NHẬP</button>
-            <div id="admin-panel" style="display:none; margin-top:10px;">
-                <button class="btn" style="background:#880044" onclick="adminAction('TAO')">TẠO MÃ</button>
-                <button class="btn" style="background:#880044" onclick="adminAction('THEM')">THÊM ACC HÀNG LOẠT</button>
-                <button class="btn" style="background:#880044" onclick="adminAction('GIA')">ĐỔI GIÁ ACC</button>
-                <button class="btn" style="background:#ff0000" onclick="adminAction('RESET')">RESET SERVER</button>
-            </div>
+        <div id="admin-panel" style="display:none; margin-top:20px; border: 2px solid #880044; padding: 10px;">
+            <h3 style="color:#fff">BẢNG QUẢN TRỊ ĐẾ VƯƠNG</h3>
+            <button class="btn" style="background:#880044" onclick="adminAction('TAO')">TẠO MÃ</button>
+            <button class="btn" style="background:#880044" onclick="adminAction('THEM')">THÊM ACC HÀNG LOẠT</button>
+            <button class="btn" style="background:#880044" onclick="adminAction('GIA')">ĐỔI GIÁ ACC</button>
+            <button class="btn" style="background:#ff0000" onclick="adminAction('RESET')">RESET SERVER</button>
         </div>
 
-        <h3>LỊCH SỬ MUA ACC LIÊN QUÂN:</h3>
+        <h3>LỊCH SỬ MUA ACC:</h3>
         <div id="history">Chưa có giao dịch.</div>
+        <div onclick="moAdminBiMat()" style="margin-top:50px; font-size:10px; color:#444; cursor:pointer;">© Shop Đế Vương System</div>
     </div>
 
     <script>
@@ -56,13 +56,11 @@
         load();
 
         async function luu(data) {
-            log("Đang lưu dữ liệu...");
             let res = await fetch("https://api.jsonbin.io/v3/b/"+B, {
                 method: "PUT", headers: {"Content-Type":"application/json", "X-Master-Key": KEY},
                 body: JSON.stringify(data)
             });
             if(res.ok) { log("Thành công!"); load(); }
-            else log("Lỗi lưu!");
         }
 
         async function nap() {
@@ -79,34 +77,31 @@
         async function hanhDong(t) {
             let gia = d.giaAcc || 400000;
             if(t=='QUAY') {
-                if(d.users.User123.balance < 10000) return log("Thiếu tiền (cần 10k)!");
+                if(d.users.User123.balance < 10000) return log("Thiếu tiền!");
                 let rand = Math.random() * 100;
-                let thuong = 0; let tenThuong = "Chúc bạn may mắn lần sau!";
-                if (rand < 3) { thuong = 100000; tenThuong = "Trúng 100.000 VNĐ!"; }
-                else if (rand < 9) { thuong = 50000; tenThuong = "Trúng 50.000 VNĐ!"; }
-                else if (rand < 21) { thuong = 20000; tenThuong = "Trúng 20.000 VNĐ!"; }
-                else if (rand < 37) { thuong = 10000; tenThuong = "Trúng 10.000 VNĐ!"; }
+                let thuong = (rand < 3 ? 100000 : (rand < 9 ? 50000 : (rand < 21 ? 20000 : (rand < 37 ? 10000 : 0))));
                 d.users.User123.balance = d.users.User123.balance - 10000 + thuong;
-                alert(tenThuong);
+                alert(thuong > 0 ? "Trúng " + formatMoney(thuong) + " VNĐ!" : "Chúc may mắn lần sau!");
                 await luu(d);
             } else {
                 let k = Object.keys(d.accounts || {});
-                if(k.length==0) return log("Hết acc Liên Quân!");
-                if(d.users.User123.balance < gia) return log("Không đủ tiền mua Acc!");
+                if(k.length == 0) return log("Hết acc!");
+                if(d.users.User123.balance < gia) return log("Thiếu tiền!");
+                
+                let selectedKey = k[Math.floor(Math.random() * k.length)];
+                
                 d.users.User123.balance -= gia;
-                let parts = d.accounts[k[0]].split('|');
-                let display = "TK: " + parts[0] + " | MK: " + parts[1];
+                let display = "TK: " + d.accounts[selectedKey];
                 d.history = "Đã mua: " + display + "\n" + (d.history || "");
                 alert("MUA THÀNH CÔNG: " + display);
-                delete d.accounts[k[0]];
+                
+                delete d.accounts[selectedKey];
                 await luu(d);
             }
         }
 
-        function moAdmin() {
-            if(document.getElementById('adminKey').value === "hung0099") {
-                document.getElementById('admin-panel').style.display = 'block';
-            } else alert("Sai mật khẩu Admin!");
+        function moAdminBiMat() {
+            if(prompt("Xác nhận Admin:") === "hung0099") document.getElementById('admin-panel').style.display = 'block';
         }
 
         async function adminAction(type) {
@@ -114,19 +109,12 @@
                 let m = prompt("Mã:"); let v = prompt("Tiền:"); let sl = prompt("Số lượng:");
                 d.codes[m]={limit:parseInt(sl), val:parseInt(v)}; await luu(d); 
             } else if(type=='THEM') { 
-                let input = prompt("Dán danh sách Acc (user|pass, user:pass, user-pass):");
+                let input = prompt("Dán danh sách Acc:");
                 if(!input) return;
-                let lines = input.split('\n');
-                let count = 0;
-                if(!d.accounts) d.accounts = {};
-                lines.forEach(line => {
-                    let parts = line.trim().split(/[|:-]+/);
-                    if(parts.length >= 2) {
-                        d.accounts["Acc"+Date.now()+Math.random()] = parts[0].trim() + "|" + parts[1].trim();
-                        count++;
-                    }
+                input.split('\n').forEach(line => {
+                    let p = line.trim().split(/[|:-]+/);
+                    if(p.length >= 2) d.accounts["Acc"+Date.now()+Math.random()] = p[0].trim() + "|" + p[1].trim();
                 });
-                alert("Đã thêm thành công " + count + " tài khoản!");
                 await luu(d);
             } else if(type=='GIA') { 
                 let g = prompt("Giá mới:"); d.giaAcc=parseInt(g); await luu(d); 
