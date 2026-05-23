@@ -2,11 +2,11 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>SHOP ĐẾ VƯƠNG</title>
+    <title>SHOP ĐẾ VƯƠNG - LIÊN QUÂN</title>
     <style>
         body { background: #0d050a; color: #ff99cc; font-family: sans-serif; text-align: center; padding: 10px; }
         .container { background: #1f0a15; border: 2px solid #ff3399; border-radius: 15px; padding: 15px; box-shadow: 0 0 10px #ff3399; }
-        .btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #cc3388; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 8px 0; background: #cc3388; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         #log { color: #fff; background: #440022; padding: 8px; font-size: 13px; border: 1px solid #ff66b2; margin-bottom: 10px; border-radius: 5px; }
         #history { color: #00ff00; background: #002200; padding: 10px; border: 1px solid #00ff00; border-radius: 8px; font-size: 13px; text-align: left; margin-top: 10px; }
         .admin-box { margin-top: 20px; border-top: 2px dashed #ff3399; padding-top: 10px; }
@@ -14,27 +14,26 @@
 </head>
 <body>
     <div class="container">
-        <h1 style="color: #ff3399; text-shadow: 0 0 5px #ff3399;">SHOP ĐẾ VƯƠNG</h1>
-        <div id="log">Nhấn TẢI DỮ LIỆU để bắt đầu!</div>
+        <h1 style="color: #ff3399; text-shadow: 0 0 5px #ff3399;">SHOP ĐẾ VƯƠNG - LIÊN QUÂN</h1>
+        <div id="log">Đang tải dữ liệu...</div>
         <h2 id="bal">Số dư: 0 VNĐ</h2>
         
-        <button class="btn" onclick="taiDuLieu()">1. TẢI DỮ LIỆU</button>
-        <button class="btn" onclick="nap()">2. NẠP MÃ</button>
-        <button class="btn" onclick="hanhDong('QUAY')">3. QUAY THƯỞNG</button>
-        <button class="btn" onclick="hanhDong('MUA')">4. MUA ACC</button>
+        <button class="btn" onclick="nap()">1. NẠP MÃ CODE</button>
+        <button class="btn" onclick="hanhDong('QUAY')">2. QUAY THƯỞNG LIÊN QUÂN</button>
+        <button class="btn" onclick="hanhDong('MUA')">3. MUA ACC LIÊN QUÂN</button>
         
         <div class="admin-box">
             <input type="password" id="adminKey" placeholder="Mật khẩu Admin" style="padding:8px; border-radius:5px; border:none;">
             <button onclick="moAdmin()" style="padding:8px; cursor:pointer;">ĐĂNG NHẬP</button>
             <div id="admin-panel" style="display:none; margin-top:10px;">
                 <button class="btn" style="background:#880044" onclick="adminAction('TAO')">TẠO MÃ</button>
-                <button class="btn" style="background:#880044" onclick="adminAction('THEM')">THÊM ACC</button>
+                <button class="btn" style="background:#880044" onclick="adminAction('THEM')">THÊM ACC HÀNG LOẠT</button>
                 <button class="btn" style="background:#880044" onclick="adminAction('GIA')">ĐỔI GIÁ ACC</button>
                 <button class="btn" style="background:#ff0000" onclick="adminAction('RESET')">RESET SERVER</button>
             </div>
         </div>
 
-        <h3>LỊCH SỬ MUA ACC:</h3>
+        <h3>LỊCH SỬ MUA ACC LIÊN QUÂN:</h3>
         <div id="history">Chưa có giao dịch.</div>
     </div>
 
@@ -46,87 +45,93 @@
         function formatMoney(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
         function log(m) { document.getElementById('log').innerText = m; }
 
-        async function taiDuLieu() {
-            log("Đang tải dữ liệu...");
+        async function load() {
             try {
                 let r = await fetch("https://api.jsonbin.io/v3/b/"+B+"/latest");
                 d = (await r.json()).record;
-                // Giá mặc định nếu chưa cài là 400.000
-                let gia = d.giaAcc || 400000;
                 document.getElementById('bal').innerText = "Số dư: " + formatMoney(d.users?.User123?.balance || 0) + " VNĐ";
-                if(d.history) document.getElementById('history').innerText = d.history;
-                log("Tải thành công! (Giá Acc: " + formatMoney(gia) + "đ)");
+                document.getElementById('history').innerText = d.history || "Chưa có giao dịch.";
             } catch(e) { log("Lỗi kết nối!"); }
         }
+        load();
 
         async function luu(data) {
+            log("Đang lưu dữ liệu...");
             let res = await fetch("https://api.jsonbin.io/v3/b/"+B, {
                 method: "PUT", headers: {"Content-Type":"application/json", "X-Master-Key": KEY},
                 body: JSON.stringify(data)
             });
-            if(res.ok) { setTimeout(()=>location.reload(), 2000); }
-            else log("Lỗi lưu dữ liệu!");
+            if(res.ok) { log("Thành công!"); load(); }
+            else log("Lỗi lưu!");
+        }
+
+        async function nap() {
+            let c = prompt("Nhập mã:");
+            if (!d.codes || !d.codes[c]) return log("Mã không tồn tại!");
+            if (d.codes[c].limit > 0) {
+                d.users.User123.balance += d.codes[c].val;
+                d.codes[c].limit -= 1;
+                alert("Nạp thành công! Còn " + d.codes[c].limit + " lượt dùng.");
+                await luu(d);
+            } else alert("Mã đã hết lượt dùng!");
+        }
+
+        async function hanhDong(t) {
+            let gia = d.giaAcc || 400000;
+            if(t=='QUAY') {
+                if(d.users.User123.balance < 10000) return log("Thiếu tiền (cần 10k)!");
+                let rand = Math.random() * 100;
+                let thuong = 0; let tenThuong = "Chúc bạn may mắn lần sau!";
+                if (rand < 3) { thuong = 100000; tenThuong = "Trúng 100.000 VNĐ!"; }
+                else if (rand < 9) { thuong = 50000; tenThuong = "Trúng 50.000 VNĐ!"; }
+                else if (rand < 21) { thuong = 20000; tenThuong = "Trúng 20.000 VNĐ!"; }
+                else if (rand < 37) { thuong = 10000; tenThuong = "Trúng 10.000 VNĐ!"; }
+                d.users.User123.balance = d.users.User123.balance - 10000 + thuong;
+                alert(tenThuong);
+                await luu(d);
+            } else {
+                let k = Object.keys(d.accounts || {});
+                if(k.length==0) return log("Hết acc Liên Quân!");
+                if(d.users.User123.balance < gia) return log("Không đủ tiền mua Acc!");
+                d.users.User123.balance -= gia;
+                let parts = d.accounts[k[0]].split('|');
+                let display = "TK: " + parts[0] + " | MK: " + parts[1];
+                d.history = "Đã mua: " + display + "\n" + (d.history || "");
+                alert("MUA THÀNH CÔNG: " + display);
+                delete d.accounts[k[0]];
+                await luu(d);
+            }
         }
 
         function moAdmin() {
             if(document.getElementById('adminKey').value === "hung0099") {
                 document.getElementById('admin-panel').style.display = 'block';
-                log("Đã đăng nhập Admin!");
             } else alert("Sai mật khẩu Admin!");
         }
 
-        async function nap() {
-            if(!d) return log("Ấn TẢI DỮ LIỆU!");
-            let c = prompt("Nhập mã:");
-            if(d.codes?.[c]?.limit > 0) {
-                d.users.User123.balance += d.codes[c].val;
-                d.codes[c].limit -= 1;
-                log("Nạp thành công " + formatMoney(d.codes[c].val) + " VNĐ!");
-                await luu(d);
-            } else log("Mã sai hoặc hết!");
-        }
-
-        async function hanhDong(t) {
-            if(!d) return log("Ấn TẢI DỮ LIỆU!");
-            let gia = d.giaAcc || 400000;
-            if(t=='QUAY') {
-                if(d.users.User123.balance < 10000) return log("Thiếu tiền (cần 10k)!");
-                let trung = (Math.random()>0.8?50000:0);
-                d.users.User123.balance = d.users.User123.balance - 10000 + trung;
-                log("QUAY TRÚNG: " + formatMoney(trung) + " VNĐ");
-                await luu(d);
-            } else {
-                let k = Object.keys(d.accounts || {});
-                if(k.length==0) return log("Hết acc!");
-                if(d.users.User123.balance < gia) return log("Thiếu tiền!");
-                d.users.User123.balance -= gia;
-                let parts = d.accounts[k[0]].split('|');
-                let display = "TK: " + parts[0] + " | MK: " + parts[1];
-                d.history = display + "\n" + (d.history || "");
-                log("MUA: " + display);
-                delete d.accounts[k[0]];
-                await luu(d);
-            }
-        }
-        
         async function adminAction(type) {
-            if(!d) return log("Ấn TẢI DỮ LIỆU trước!");
-            if(type=='TAO') {
-                let m = prompt("Mã:"); let v = prompt("Tiền:");
-                d.codes[m] = {limit: 5, val: parseInt(v)};
-                await luu(d);
-            } else if(type=='THEM') {
-                let a = prompt("Nhập Acc (Mẫu: user|pass):");
-                if(!a.includes('|')) return alert("Sai mẫu! (user|pass)");
+            if(type=='TAO') { 
+                let m = prompt("Mã:"); let v = prompt("Tiền:"); let sl = prompt("Số lượng:");
+                d.codes[m]={limit:parseInt(sl), val:parseInt(v)}; await luu(d); 
+            } else if(type=='THEM') { 
+                let input = prompt("Dán danh sách Acc (user|pass, user:pass, user-pass):");
+                if(!input) return;
+                let lines = input.split('\n');
+                let count = 0;
                 if(!d.accounts) d.accounts = {};
-                d.accounts["Acc"+Date.now()] = a;
+                lines.forEach(line => {
+                    let parts = line.trim().split(/[|:-]+/);
+                    if(parts.length >= 2) {
+                        d.accounts["Acc"+Date.now()+Math.random()] = parts[0].trim() + "|" + parts[1].trim();
+                        count++;
+                    }
+                });
+                alert("Đã thêm thành công " + count + " tài khoản!");
                 await luu(d);
-            } else if(type=='GIA') {
-                let g = prompt("Nhập giá mới (VNĐ):");
-                d.giaAcc = parseInt(g);
-                await luu(d);
-            } else if(type=='RESET') {
-                if(confirm("RESET TOÀN BỘ?")) await luu({users:{"User123":{balance:0}}, codes:{}, accounts:{}, giaAcc:400000});
+            } else if(type=='GIA') { 
+                let g = prompt("Giá mới:"); d.giaAcc=parseInt(g); await luu(d); 
+            } else if(type=='RESET') { 
+                if(confirm("XÓA HẾT?")) await luu({users:{"User123":{balance:0}}, codes:{}, accounts:{}, giaAcc:400000}); 
             }
         }
     </script>
