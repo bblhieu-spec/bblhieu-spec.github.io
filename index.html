@@ -5,16 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SHOP ĐẾ VƯƠNG - LIÊN QUÂN</title>
     <style>
-        /* PHÓNG TO TOÀN BỘ FONT VÀ NÚT BẤM */
-        html { zoom: 1.2; } /* Tăng tỉ lệ zoom lên 120% */
-        body { background: #050505; color: #ffd700; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
-        
+        html { zoom: 1.2; }
+        body { background: #050505; color: #ffd700; font-family: sans-serif; text-align: center; padding: 15px; margin: 0; overflow-x: hidden; }
         #canvas { position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none; width: 100%; height: 100%; }
-        .box { background: linear-gradient(135deg, #220000, #000); border: 3px solid #ffd700; border-radius: 20px; padding: 20px; margin: 15px 0; box-shadow: 0 0 20px #ffd700; }
-        .btn { display: block; width: 100%; padding: 20px; margin: 15px 0; background: #000; color: #ffd700; border: 2px solid #ffd700; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.2s; }
+        .box { background: linear-gradient(135deg, #220000, #000); border: 2px solid #ffd700; border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 0 15px #ffd700; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #000; color: #ffd700; border: 1px solid #ffd700; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 16px; }
         .btn:active { transform: scale(0.95); background: #330000; }
-        .log-box { background: #000; color: #0f0; padding: 15px; border-radius: 8px; text-align: left; font-size: 15px; max-height: 150px; overflow-y: auto; border: 1px solid #333; margin-top: 10px; }
-        h1 { font-size: 30px; }
+        .log-box { background: #000; color: #0f0; padding: 10px; border-radius: 5px; text-align: left; font-size: 13px; max-height: 120px; overflow-y: auto; border: 1px solid #333; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -47,13 +44,19 @@
         <button class="btn" onclick="adminAction('GIA')" style="background:#550000;">⚙️ CHỈNH GIÁ MUA ACC</button>
         <button class="btn" onclick="adminAction('RESET_ALL')" style="color:red;">RESET TẤT CẢ</button>
     </div>
-    <div onclick="moAdmin()" style="margin-top:30px; font-size:12px; color:#555; cursor:pointer;">©¤NGONGOCHUNG SYSTEM.●</div>
+    <div onclick="moAdmin()" style="margin-top:30px; font-size:10px; color:#555; cursor:pointer;">©¤NGONGOCHUNG SYSTEM.●</div>
 
     <script>
         const B = "6a104353ee5a733b12ffcdf5", KEY = "$2a$10$w2vogPsNVk6QlFdnS0ZCwuHcD/tdk9fPnLZB0fCAcJMGFBklvUyrS".trim();
         let d = null;
-        let ip = localStorage.getItem('myIp') || "U" + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('myIp', ip);
+        
+        // Cải tiến: Ép khách nhập tên để bạn nhận diện được khách
+        let ip = localStorage.getItem('myId');
+        if (!ip) {
+            ip = prompt("Nhập tên hiển thị của bạn để vào shop:");
+            if (!ip) ip = "Khách_" + Math.random().toString(36).substr(2, 5);
+            localStorage.setItem('myId', ip);
+        }
 
         async function load() {
             let r = await fetch("https://api.jsonbin.io/v3/b/"+B+"/latest");
@@ -120,7 +123,7 @@
             }
             else if(type=='TIEN') { let n=prompt("ID khách:"), s=parseInt(prompt("Tiền:")); if(d.users[n]) { d.users[n].balance=s; luu(d); alert("Xong!"); } }
             else if(type=='GIA') { let g = prompt("Giá mới:"); if(g) { d.giaAcc = parseInt(g); luu(d); alert("Xong!"); } }
-            else if(type=='RESET_ALL') { if(confirm("RESET?")) { await luu({users:{}, AdminWallet:0, codes:{}, accounts:{}, notifyLog:"Reset", accLog:"Reset", memberLog:"Reset"}); alert("Xong!"); } }
+            else if(type=='RESET_ALL') { if(confirm("RESET?")) { await luu({users:{}, AdminWallet:0, codes:{}, accounts:{}, notifyLog:"Reset", accLog:"Reset", memberLog:"Reset"}); alert("Xong!"); location.reload(); } }
         }
         function toggleLog(id) { let x = document.getElementById(id); x.style.display = (x.style.display === 'none') ? 'block' : 'none'; }
     </script>
